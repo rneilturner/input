@@ -15,7 +15,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-
+#include <stdint.h>
 #include "project.h"
 #include "rpcgen/xenmgr_client.h"
 
@@ -208,7 +208,7 @@ switch_to_slot (int slot, int mouse_switch, int force)
 static int
 force_go_to_slot (void *slotp)
 {
-  int slot = (int) slotp;
+  int slot = (int)(intptr_t)slotp;
 
   if (auth_get_context ()) {
       info ("auth in progress, keyboard switching is blocked");
@@ -222,7 +222,7 @@ force_go_to_slot (void *slotp)
 static int
 go_to_slot (void *slotp)
 {
-  int slot = (int) slotp;
+  int slot = (int)(intptr_t)slotp;
 
   info("go to slot %d",slot);
   switch_to_slot (slot, 0, 0);
@@ -571,13 +571,13 @@ switcher_auth_or_lock_wrapper(void *opaque)
 void
 switcher_switch_left(void)
 {
-  go_to_slot((void*)(current->slot - 1));
+  go_to_slot((void*)(intptr_t)(current->slot - 1));
 }
 
 void
 switcher_switch_right(void)
 {
-  go_to_slot((void*)(current->slot + 1));
+  go_to_slot((void*)(intptr_t)(current->slot + 1));
 }
 
 void
@@ -594,8 +594,8 @@ switcher_init (void)
     {
       int left[] = { KEY_LEFTCTRL, i ? KEY_1 + (i - 1) : KEY_0, -1 };
       int right[] = { KEY_RIGHTCTRL, i ? KEY_1 + (i - 1) : KEY_0, -1 };
-      input_add_binding (left, go_to_slot, force_go_to_slot, (void *) i);
-      input_add_binding (right, go_to_slot, force_go_to_slot, (void *) i);
+      input_add_binding (left, go_to_slot, force_go_to_slot, (void *)(intptr_t) i);
+      input_add_binding (right, go_to_slot, force_go_to_slot, (void *)(intptr_t) i);
     }
 
   {

@@ -15,7 +15,7 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
-
+#include <stdint.h>
 #include "project.h"
 
 #include "keyboard.h"
@@ -414,7 +414,7 @@ static int anyset(unsigned long *keybit)
 
 static void send_config_wrap(struct domain *d, void *o)
 {
-    int slot = (int) o;
+    int slot = (int)(intptr_t) o;
     send_config(d, slot);
     if (d->plugin)
         send_plugin_dev_event(d->plugin, DEV_CONF, slot);
@@ -422,18 +422,18 @@ static void send_config_wrap(struct domain *d, void *o)
 
 static void send_config_reset_wrap(struct domain *d, void *o)
 {
-    uint8_t slot = (int) o;
+    uint8_t slot = (int)(intptr_t) o;
     send_config_reset(d, slot);
 }
 
 static void broadcast_removed_dev(int slot)
 {
-    iterate_domains(send_config_reset_wrap, (void *) slot);
+    iterate_domains(send_config_reset_wrap, (void *)(intptr_t) slot);
 }
 
 static void broadcast_config(int slot)
 {
-    iterate_domains(send_config_wrap, (void *) slot);
+    iterate_domains(send_config_wrap, (void *)(intptr_t) slot);
 }
 
 static void send_config(struct domain *d, int slot)
@@ -516,7 +516,7 @@ static void send_config(struct domain *d, int slot)
 
 
     /* Ugly fix instead of cast to uint64_t */
-    if (absbit[0] == 0 && absbit[1] == 0)
+    if (absbit[0] == 0)
         abssize = 0;
 
 
@@ -2448,7 +2448,7 @@ static void input_lock_timer(void *opaque)
     if (lock_event.ev_flags == 0)
         event_set(&lock_event, -1, EV_TIMEOUT | EV_PERSIST, wrapper_input_lock_timer, (void *) 1);
 
-    if ((int) opaque == 0)
+    if ((int)(intptr_t) opaque == 0)
         timeout = 0;
     if (platform_lock_timeout == -1)
     {
@@ -2463,7 +2463,7 @@ static void input_lock_timer(void *opaque)
         timeout = 0;
         switcher_lock(0);
     }
-    if ((int) opaque == 1)
+    if ((int)(intptr_t) opaque == 1)
         timeout += 5;
     tv.tv_sec += 5;
     evtimer_add(&lock_event, &tv);
@@ -2490,7 +2490,7 @@ void check_and_inject_event(struct input_event *e, int slot, enum input_device_t
 
 static void input_read(void *opaque)
 {
-    int slot = (int) opaque;
+    int slot = (int)(intptr_t) opaque;
     struct input_event event[64];
     unsigned int i = 0;
     int read_sz = 0;
@@ -2799,7 +2799,7 @@ static int consider_device(int slot)
         info("event%d added thinkpad acpi device on fd %d (%s)", slot, fd, name);
         input_dev.types[slot] = HID_TYPE_THINKPAD_ACPI;
 
-        event_set(&input_dev.device_events[slot], fd, EV_READ | EV_PERSIST, wrapper_input_read, (void *) slot);
+        event_set(&input_dev.device_events[slot], fd, EV_READ | EV_PERSIST, wrapper_input_read, (void *)(intptr_t) slot);
         event_add(&input_dev.device_events[slot], NULL);
         return 0;
     }
@@ -2818,7 +2818,7 @@ static int consider_device(int slot)
         info("event%d added keyboard on fd %d (%s)", slot, fd, name);
         input_dev.types[slot] = HID_TYPE_KEYBOARD;
 
-        event_set(&input_dev.device_events[slot], fd, EV_READ | EV_PERSIST, wrapper_input_read, (void *) slot);
+        event_set(&input_dev.device_events[slot], fd, EV_READ | EV_PERSIST, wrapper_input_read, (void *)(intptr_t) slot);
         event_add(&input_dev.device_events[slot], NULL);
 
         /* Set the keyboard LEDs. */
@@ -2866,7 +2866,7 @@ static int consider_device(int slot)
     }
 
     broadcast_config(slot);
-    event_set(&input_dev.device_events[slot], fd, EV_READ | EV_PERSIST, wrapper_input_read, (void *) slot);
+    event_set(&input_dev.device_events[slot], fd, EV_READ | EV_PERSIST, wrapper_input_read, (void *)(intptr_t) slot);
 
     event_add(&input_dev.device_events[slot], NULL);
 

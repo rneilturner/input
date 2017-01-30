@@ -545,7 +545,7 @@ void send_event(struct sock_plugin* plug, int t, int c, int v)
 
 static void server_accept(int fd, short event, void *opaque)
   {
-  int s = (int)opaque;
+  int s = (int)(intptr_t)opaque;
   int s2;
   socklen_t t;
   struct sockaddr_un remote;
@@ -616,7 +616,7 @@ void socket_server_init(void)
         return;
     }
 
-   event_set (&server_accept_event, server_sock_fd, EV_READ | EV_PERSIST, server_accept, (void*)server_sock_fd);
+   event_set (&server_accept_event, server_sock_fd, EV_READ | EV_PERSIST, server_accept, (void*)(intptr_t)server_sock_fd);
    event_add (&server_accept_event, NULL);
 }
 
